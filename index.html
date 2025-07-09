@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturing Cashflow Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 60px 1fr;
+            grid-template-areas: 
+                "sidebar header"
+                "sidebar main";
+            width: 1400px;
+            height: 800px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            grid-area: sidebar;
+            background: #fff;
+            border-right: 1px solid #e1e5e9;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: #0066cc;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .filter-value {
+            font-size: 14px;
+            color: #333;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Header */
+        .header {
+            grid-area: header;
+            background: #fff;
+            border-bottom: 1px solid #e1e5e9;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .breadcrumb a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-btn, .user-avatar {
+            padding: 8px 12px;
+            border: 1px solid #e1e5e9;
+            border-radius: 4px;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .main-content {
+            grid-area: main;
+            padding: 28px;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 36px;
+        }
+
+        /* KPI Cards */
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .kpi-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px;
+            border: 1px solid #e1e5e9;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kpi-header {
+            margin-bottom: 14px;
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .kpi-subtitle {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .kpi-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .kpi-metrics {
+            flex: 1;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .kpi-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .kpi-change.positive {
+            color: #28a745;
+        }
+
+        .kpi-change.negative {
+            color: #dc3545;
+        }
+
+        .kpi-chart {
+            width: 80px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 28px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .chart-header {
+            margin-bottom: 28px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .metrics-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: 120px repeat(4, 1fr);
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .metric-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metric-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-change.positive {
+            color: #28a745;
+        }
+
+        .metric-change.negative {
+            color: #dc3545;
+        }
+
+        .sparkline-container {
+            width: 120px;
+            height: 45px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">₽</div>
+                CashFlow BI
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">Current Period</div>
+                <div class="filter-value">2025</div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">Company</div>
+                <div class="filter-value">Manufacturing Corp</div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">Department</div>
+                <div class="filter-value">Finance</div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">Currency</div>
+                <div class="filter-value">USD</div>
+            </div>
+        </div>
+
+        <div class="header">
+            <div class="breadcrumb">
+                <a href="#">Home</a>
+                <span>></span>
+                <a href="#">Finance</a>
+                <span>></span>
+                <span>Cashflow</span>
+            </div>
+            <div class="user-info">
+                <button class="info-btn">Info</button>
+                <button class="user-avatar">FM</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-title">Cashflow Analysis</div>
+            <div class="page-subtitle">Financial position and liquidity monitoring</div>
+
+            <div class="kpi-section">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Total Cash Position</div>
+                        <div class="kpi-subtitle">All accounts combined</div>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-metrics">
+                            <div class="kpi-value">$3.09M</div>
+                            <div class="kpi-change positive">
+                                <span>↗</span> +11.8%
+                            </div>
+                        </div>
+                        <div class="kpi-chart">
+                            <canvas id="total-cash-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Credit Utilization</div>
+                        <div class="kpi-subtitle">vs available credit line</div>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-metrics">
+                            <div class="kpi-value">40.0%</div>
+                            <div class="kpi-change negative">
+                                <span>↗</span> +53.8%
+                            </div>
+                        </div>
+                        <div class="kpi-chart">
+                            <canvas id="credit-util-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Working Capital</div>
+                        <div class="kpi-subtitle">Current assets - liabilities</div>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-metrics">
+                            <div class="kpi-value">$3.14M</div>
+                            <div class="kpi-change positive">
+                                <span>↗</span> +20.8%
+                            </div>
+                        </div>
+                        <div class="kpi-chart">
+                            <canvas id="working-capital-kpi-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Net Cashflow</div>
+                        <div class="kpi-subtitle">Monthly performance</div>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-metrics">
+                            <div class="kpi-value">$250K</div>
+                            <div class="kpi-change negative">
+                                <span>↘</span> -37.5%
+                            </div>
+                        </div>
+                        <div class="kpi-chart">
+                            <canvas id="net-cashflow-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div class="chart-title">Financial Metrics by Account Type</div>
+                    <div class="chart-subtitle">Current vs previous period trends</div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-row">
+                        <div class="metric-label"></div>
+                        <div style="text-align: center; font-weight: 600; font-size: 12px; color: #6c757d;">Cash Accounts</div>
+                        <div style="text-align: center; font-weight: 600; font-size: 12px; color: #6c757d;">Credit Position</div>
+                        <div style="text-align: center; font-weight: 600; font-size: 12px; color: #6c757d;">Receivables</div>
+                        <div style="text-align: center; font-weight: 600; font-size: 12px; color: #6c757d;">Working Capital</div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-label">Checking</div>
+                        <div class="metric-data">
+                            <div class="metric-value">$450K</div>
+                            <div class="metric-change negative">-11.8% ↓</div>
+                            <div class="sparkline-container">
+                                <canvas id="checking-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$800K</div>
+                            <div class="metric-change negative">+23.1% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="credit-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$3.2M</div>
+                            <div class="metric-change positive">+51.0% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="receivables-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$3.14M</div>
+                            <div class="metric-change positive">+20.8% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="working-capital-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-label">Savings</div>
+                        <div class="metric-data">
+                            <div class="metric-value">$1.43M</div>
+                            <div class="metric-change positive">+19.2% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="savings-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">40.0%</div>
+                            <div class="metric-change negative">+53.8% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="utilization-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$2.44M</div>
+                            <div class="metric-change positive">+24.0% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="payables-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$4.8M</div>
+                            <div class="metric-change positive">+100% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="orders-in-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-label">Investment</div>
+                        <div class="metric-data">
+                            <div class="metric-value">$1.21M</div>
+                            <div class="metric-change positive">+51.3% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="investment-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$1.2M</div>
+                            <div class="metric-change positive">+38.5% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="available-credit-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$250K</div>
+                            <div class="metric-change negative">-37.5% ↓</div>
+                            <div class="sparkline-container">
+                                <canvas id="cashflow-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-value">$4.0M</div>
+                            <div class="metric-change positive">+122% ↑</div>
+                            <div class="sparkline-container">
+                                <canvas id="orders-out-chart" width="120" height="40"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for sparklines
+        const sampleData = {
+            checking: [450, 520, 480, 380, 420, 550, 620, 580, 490, 440, 380, 520, 450],
+            savings: [1200, 1150, 1180, 1220, 1180, 1200, 1250, 1300, 1320, 1280, 1250, 1300, 1430],
+            investment: [800, 820, 790, 850, 880, 900, 920, 940, 980, 1020, 1050, 1080, 1210],
+            credit: [650, 580, 720, 890, 780, 450, 320, 280, 420, 580, 720, 520, 800],
+            utilization: [32.5, 29.0, 36.0, 44.5, 39.0, 22.5, 16.0, 14.0, 21.0, 29.0, 36.0, 26.0, 40.0],
+            availableCredit: [1350, 1420, 1280, 1110, 1220, 1550, 1680, 1720, 1580, 1420, 1280, 1480, 1200],
+            receivables: [1850, 1920, 2100, 2250, 2180, 1980, 1850, 1750, 1920, 2150, 2350, 2100, 3200],
+            payables: [1200, 1350, 1450, 1600, 1520, 1380, 1250, 1180, 1320, 1480, 1650, 1420, 2440],
+            cashflow: [400, 500, 500, 600, 700, 950, 1300, 1250, 950, 700, 450, 1200, 250],
+            workingCapital: [1900, 2060, 2100, 2240, 2140, 2250, 2390, 2390, 2390, 2410, 2380, 2600, 3140],
+            ordersIn: [2400, 2200, 2800, 3200, 2900, 2600, 2400, 2200, 2500, 2800, 3100, 2700, 4800],
+            ordersOut: [1800, 1650, 2100, 2400, 2200, 1900, 1750, 1600, 1850, 2100, 2350, 2000, 4000]
+        };
+
+        // KPI data for bar charts
+        const kpiData = {
+            totalCash: [2450, 2490, 2450, 2450, 2480, 2650, 2790, 2820, 2790, 2740, 2680, 2900],
+            creditUtilization: [32.5, 29.0, 36.0, 44.5, 39.0, 22.5, 16.0, 14.0, 21.0, 29.0, 36.0, 26.0],
+            workingCapital: [1900, 2060, 2100, 2240, 2140, 2250, 2390, 2390, 2390, 2410, 2380, 2600],
+            netCashflow: [400, 500, 500, 600, 700, 950, 1300, 1250, 950, 700, 450, 1200]
+        };
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function createSparkline(canvasId, data, color = '#0066cc') {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: data.length}, (_, i) => ''),
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    elements: {
+                        point: { radius: 0 }
+                    }
+                }
+            });
+        }
+
+        function createKpiBarChart(canvasId, data, color = '#0066cc') {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: color,
+                        borderRadius: 1,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { 
+                            display: false,
+                            grid: { display: false }
+                        },
+                        y: { 
+                            display: false,
+                            grid: { display: false }
+                        }
+                    },
+                    elements: {
+                        bar: { borderRadius: 1 }
+                    }
+                }
+            });
+        }
+
+        // Initialize all sparklines
+        document.addEventListener('DOMContentLoaded', function() {
+            // KPI bar charts
+            createKpiBarChart('total-cash-chart', kpiData.totalCash, '#28a745');
+            createKpiBarChart('credit-util-chart', kpiData.creditUtilization, '#dc3545');
+            createKpiBarChart('working-capital-kpi-chart', kpiData.workingCapital, '#28a745');
+            createKpiBarChart('net-cashflow-chart', kpiData.netCashflow, '#ffc107');
+
+            // Sparklines
+            createSparkline('checking-chart', sampleData.checking, '#dc3545');
+            createSparkline('savings-chart', sampleData.savings, '#28a745');
+            createSparkline('investment-chart', sampleData.investment, '#28a745');
+            createSparkline('credit-chart', sampleData.credit, '#dc3545');
+            createSparkline('utilization-chart', sampleData.utilization, '#dc3545');
+            createSparkline('available-credit-chart', sampleData.availableCredit, '#28a745');
+            createSparkline('receivables-chart', sampleData.receivables, '#28a745');
+            createSparkline('payables-chart', sampleData.payables, '#28a745');
+            createSparkline('cashflow-chart', sampleData.cashflow, '#dc3545');
+            createSparkline('working-capital-chart', sampleData.workingCapital, '#28a745');
+            createSparkline('orders-in-chart', sampleData.ordersIn, '#28a745');
+            createSparkline('orders-out-chart', sampleData.ordersOut, '#28a745');
+        });
+    </script>
+</body>
+</html>
